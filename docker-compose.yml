@@ -1,0 +1,89 @@
+services:
+  app:
+    build: .
+    container_name: notes_app
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DEV=true
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=notes_user
+      - DB_PASSWORD=password
+      - JWT_SECRET=secret
+      - RMQ_HOST=rabbitmq
+      - RMQ_DATA_BUS_USER=data-bus
+      - RMQ_DATA_BUS_PASSWORD=data-bus
+      - RMQ_DATA_BUS_QUEUE=data_bus_queue
+      - USERS_SERVICE_DB_NAME=usersService
+      - RMQ_USERS_SERVICE_USER=users-service
+      - RMQ_USERS_SERVICE_PASSWORD=users-service
+      - RMQ_USERS_SERVICE_QUEUE=users_service_queue
+      - AUTH_SERVICE_DB_NAME=authService
+      - RMQ_AUTH_SERVICE_USER=auth-service
+      - RMQ_AUTH_SERVICE_PASSWORD=auth-service
+      - RMQ_AUTH_SERVICE_QUEUE=auth_service_queue
+      - NOTES_SERVICE_DB_NAME=notesService
+      - RMQ_NOTES_SERVICE_USER=notes-service
+      - RMQ_NOTES_SERVICE_PASSWORD=notes-service
+      - RMQ_NOTES_SERVICE_QUEUE=notes_service_queue
+    networks:
+      - notes_network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:17
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - '5453:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    networks:
+      - notes_network
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5693:5672'
+      - '15693:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - notes_network
+    healthcheck:
+      test: ['CMD', 'rabbitmqctl', 'status']
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  notes_network:
+    driver: bridge

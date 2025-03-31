@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password": "admin",
+      "tags": "administrator"
+    },
+    {
+      "name": "data-bus",
+      "password": "data-bus",
+      "tags": "administrator"
+    },
+    {
+      "name": "users-service",
+      "password": "users-service",
+      "tags": "administrator"
+    },
+    {
+      "name": "auth-service",
+      "password": "auth-service",
+      "tags": "administrator"
+    },
+    {
+      "name": "notes-service",
+      "password": "notes-service",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "data-bus",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "users-service",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "auth-service",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "notes-service",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "V1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication and user management endpoints. Includes user registration, login, and session management. All operations related to user identity and access control."
+    },
+    {
+      "name": "Notes",
+      "description": "Note management operations. Provides CRUD functionality for user notes including creation, retrieval, updating and deletion of notes. Supports pagination, sorting and searching through notes collection."
+    },
+    {
+      "name": "Health",
+      "description": "System health monitoring endpoints. Contains simple status checks to verify API availability and operational status. Used for infrastructure monitoring and uptime checks."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "tokenAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register",
+        "description": "### Register User\n\nThis endpoint allows you to register a new user in the system.\n\n#### Request Body\n\n- `name` (string) - The name of the user.\n    \n- `email` (string) - The email address of the user.\n    \n- `password` (string) - The password for the user account. The assword must be at least 6 characters long. It requires at least one symbol, one number, one lowercase character, and one uppercase character.\n    \n\n#### Response\n\nThe response of successful request will register new user in the system and log them in automatically. The response will include access token inside the authorization header and http only cookie. The response body schema is:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"User name\",\n        \"email\": \"email@example.com\",\n        \"iat\": 0000000000,\n        \"exp\": 0000000000\n    }\n}\n\n ```\n\nUnsuccessfull responses:\n\nThe system will return the response of following schema if there will be an attempt to register already registered user:\n\n``` json\n{\n    \"success\": false,\n    \"statusCode\": 409,\n    \"message\": \"User already exist\"\n}\n\n ```\n\nThe system will return the response of the following schema if request body is incorrect:\n\n``` json\n{\n    \"message\": [\n        \"password is not strong enough\"\n    ],\n    \"error\": \"Bad Request\",\n    \"statusCode\": 400\n}\n\n ```",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "name": "Username",
+                  "email": "email@example.com",
+                  "password": "Password1@"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "description": "### Login Authentication\n\nThis endpoint allows users to authenticate and obtain access to the system.\n\n**Request Body**\n\n- `email` (string): The email address of the user.\n    \n- `password` (string): The password for the user's account.\n    \n\n**Response**  \nThe response of successful request will include access token inside the authorization header and http only cookie. The response body schema is:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"User name\",\n        \"email\": \"email@example.com\",\n        \"iat\": 0000000000,\n        \"exp\": 0000000000\n    }\n}\n\n ```\n\nResponse body of unsuccesful request is:\n\n``` json\n{\n    \"success\": false,\n    \"statusCode\": 401,\n    \"message\": \"Unauthorized\"\n}\n\n ```",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "email": "email@example.com",
+                  "password": "Password1@"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Me",
+        "description": "The `GET` request to `/auth/me` endpoint retrieves the user's authentication details.\n\nThe authorization token should be attached to the request as Authorization header or cookie returned from the system.\n\n### Response\n\nThe response body of successful has the following schema:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"User name\",\n        \"email\": \"email@example.com\",\n        \"iat\": 0000000000,\n        \"exp\": 0000000000\n    }\n}\n\n ```\n\nResponse body of unsuccesful request is:\n\n``` json\n{\n    \"success\": false,\n    \"statusCode\": 401,\n    \"message\": \"Unauthorized\"\n}\n\n ```",
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/notes/{id}": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get one",
+        "description": "### Retrieve Note by ID\n\nThis endpoint retrieves a specific note by its ID.\n\n#### Request\n\n- Method: GET\n    \n- URL: `/notes/{id}`\n    \n\n#### Response\n\nThe response for this request is a JSON object representing the note with the following properties:\n\n- `id` (number): The unique identifier of the note.\n    \n- `title` (string): The title of the note.\n    \n- `content` (string): The content of the note.\n    \n\nHere is the JSON schema for the response:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"id\": 1,\n        \"ownerId\": 1,\n        \"content\": \"Note content\",\n        \"createdAt\": \"2025-03-18T23:21:18.290Z\",\n        \"updatedAt\": \"2025-03-18T23:22:52.444Z\"\n    }\n}\n\n ```\n\nThe system can also return Unauthorized or Not Found response if request resource will not be found or user will not have access to requested resource.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID of the note",
+            "example": 1
+          }
+        ],
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Notes"],
+        "summary": "Update",
+        "description": "This endpoint allows the user to update a specific note using the note ID in the URL.\n\n### Request Body\n\n- content (string, required): The updated content of the note.\n    \n\n### Response\n\nThe response will return same reponse as create request but with status code 200 OK.\n\nThe system can also return Unauthorized or Not Found response if request resource will not be found or user will not have access to requested resource.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "content": "Updated content"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Notes"],
+        "summary": "Delete",
+        "description": "### Delete Note\n\nThis endpoint is used to delete a specific note.\n\n#### Request\n\n- Method: DELETE\n    \n- Endpoint: `/notes/{id}`\n    \n\n#### Response\n\nThe response for this request is an object with the following schema:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"removedItemsCount\": 1\n    }\n}\n\n ```\n\nThe system can also return Unauthorized or Not Found response if request resource will not be found or user will not have access to requested resource.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/notes": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get all",
+        "description": "### Get Notes\n\nThis endpoint retrieves a list of notes of currently logged in user with pagination and sorting options.\n\n#### Request Parameters\n\n- `page` (integer): The page number for pagination.\n    \n- `perPage` (integer): The number of items per page.\n    \n- `sortBy` (createdAt | updatedAt): The property to sort results by. Default value is \"updatedAt\".\n    \n- `sortOrder` (string): The sorting order for the notes (ASC or DESC). Default value is \"DESC\"\n    \n- `search` (string): The search keyword for filtering notes.\n    \n\n#### Response\n\nThe response follows the schema below:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 200,\n    \"data\": {\n        \"docs\": [\n            {\n                \"id\": 1,\n                \"ownerId\": 1,\n                \"content\": \"Note content\",\n                \"createdAt\": \"2025-03-18T23:21:18.290Z\",\n                \"updatedAt\": \"2025-03-18T23:22:52.444Z\"\n            }\n        ],\n        \"currentPage\": 1,\n        \"perPage\": 5,\n        \"totalItems\": 1,\n        \"totalPages\": 1,\n        \"nextPage\": null,\n        \"previousPage\": null\n    }\n}\n\n ```\n\nEndpoint can return Unauthorized response in there's no access token attached to the request.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "5"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "example": "ASC"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Notes"],
+        "summary": "Create",
+        "description": "### Add Note\n\nThis endpoint allows the user to add a new note.\n\n#### Request Body\n\n- content (string, required): The content of the note.\n    \n\n#### Response\n\nThe response body of this request has the following schema:\n\n``` json\n{\n    \"success\": true,\n    \"statusCode\": 201,\n    \"data\": {\n        \"id\": 1,\n        \"ownerId\": 1,\n        \"content\": \"note content\",\n        \"createdAt\": \"2025-03-24T20:33:51.792Z\",\n        \"updatedAt\": \"2025-03-24T20:33:51.792Z\"\n    }\n}\n\n ```\n\nEndpoint can return Unauthorized response in there's no access token attached to the request.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "example": {
+                  "content": "Note content"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "tokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Status",
+        "description": "### Health Check\n\nThis endpoint is used to perform a health check on the system. This request returns information if API is alive and nothing more.\n\n#### Request\n\nThere are no request parameters for this endpoint.\n\n#### Response\n\nThe one response body for this request is:\n\n``` json\n{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"OK\"\n}\n\n ```",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
